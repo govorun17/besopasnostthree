@@ -58,9 +58,7 @@ public final class Algorithm {
                     List<Integer> wordIndexes = getIndexesOfWordOnPage(word, pageText);
                     if (wordIndexes.size() != 0) {
                         int i = pageIndex;
-                        wordIndexes.forEach(index -> {
-                            keys.add(i + "-" + index);
-                        });
+                        wordIndexes.forEach(index -> keys.add(i + "-" + index));
                     }
 
                     ++pageIndex;
