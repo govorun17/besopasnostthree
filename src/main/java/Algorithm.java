@@ -55,7 +55,7 @@ public final class Algorithm {
                 for (XWPFParagraph para : paragraphs) {
                     String[] pageText = makeValid(para.getText()).toLowerCase().split(" ");
 
-                    List<Integer> wordIndexes = getIndexOnPage(word, pageText);
+                    List<Integer> wordIndexes = getIndexesOfWordOnPage(word, pageText);
                     if (wordIndexes.size() != 0) {
                         int i = pageIndex;
                         wordIndexes.forEach(index -> {
@@ -78,15 +78,37 @@ public final class Algorithm {
                 throw new IOException("Не удалось зашифровать слово: " + word);
             }
 
-            res.append(keys.get(count % keys.size()));
+            res.append(keys.get(count % keys.size())).append("-");
             count--;
             wordCount.replace(word, count);
         }
+        res.deleteCharAt(res.length() - 1);
         return res.toString();
     }
 
-    public String decode(String k) {
-        return null;
+    public String decode(String k) throws IOException {
+        if (k == null || k.isEmpty()) {
+            throw new IOException("Пустой ключ!");
+        }
+
+        String[] keys = k.split("-");
+
+        StringBuilder res = new StringBuilder();
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+
+            XWPFDocument document = new XWPFDocument(fis);
+            List<XWPFParagraph> paragraphs = document.getParagraphs();
+
+            for (int i = 0; i < keys.length; i+=2) {
+                XWPFParagraph paragraph = paragraphs.get(Integer.parseInt(keys[i]));
+                String[] pageText = makeValid(paragraph.getText()).toLowerCase().split(" ");
+                res.append(pageText[Integer.parseInt(keys[i+1])]).append(" ");
+            }
+        }
+
+        res.deleteCharAt(res.length() - 1);
+        return res.toString();
     }
 
     private String makeValid(String s) {
@@ -104,7 +126,7 @@ public final class Algorithm {
         return (c >= '{' && c <= '~') || (c >= '[' && c <= '`') || (c >= '!' && c <= '@');
     }
 
-    private List<Integer> getIndexOnPage(String w, String[] p) {
+    private List<Integer> getIndexesOfWordOnPage(String w, String[] p) {
         List<Integer> indexes = new ArrayList<>();
         int index = 0;
         for (String wp : p) {
@@ -115,4 +137,6 @@ public final class Algorithm {
         }
         return indexes;
     }
+
+
 }
